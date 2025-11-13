@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>CMPS 260: Module 3 Programming Assignment</title>
+    <style> * { font-family: monospace; }</style>
+    <script>
+      console.log("Creating a set");
+
+      function Set() {
+        var items = {};
+
+        this.add = function(value) {
+          if (!this.has(value)) {
+            items[value] = value;
+            return true;
+          }
+          return false;
+        };
+
+        this.delete = function(value) {
+          if (this.has(value)) {
+            delete items[value];
+            return true;
+          }
+          return false;
+        };
+
+        this.has = function(value) {
+          return items.hasOwnProperty(value);
+        };
+
+        this.clear = function() {
+          items = {};
+        };
+
+        this.size = function() {
+          return Object.keys(items).length;
+        };
+
+        this.values = function() {
+          return Object.keys(items);
+        };
+
+        this.union = function(otherSet) {
+          var unionSet = new Set();
+          var values = this.values();
+          for (var i = 0; i < values.length; i++) {
+            unionSet.add(values[i]);
+          }
+          values = otherSet.values();
+          for (var i = 0; i < values.length; i++) {
+            unionSet.add(values[i]);
+          }
+          return unionSet;
+        };
+
+        this.intersection = function(otherSet) {
+          var intersectionSet = new Set();
+          var values = this.values();
+          for (var i = 0; i < values.length; i++) {
+            if (otherSet.has(values[i])) {
+              intersectionSet.add(values[i]);
+            }
+          }
+          return intersectionSet;
+        };
+
+        this.difference = function(otherSet) {
+          var differenceSet = new Set();
+          var values = this.values();
+          for (var i = 0; i < values.length; i++) {
+            if (!otherSet.has(values[i])) {
+              differenceSet.add(values[i]);
+            }
+          }
+          return differenceSet;
+        };
+
+        this.subset = function(otherSet) {
+          var values = this.values();
+          for (var i = 0; i < values.length; i++) {
+            if (!otherSet.has(values[i])) {
+              return false;
+            }
+          }
+          return true;
+        };
+      }
+
+      console.log("Set operations");
+
+      var setA = new Set();
+      setA.add("a");
+      setA.add("b");
+      setA.add("c");
+
+      var setB = new Set();
+      setB.add("b");
+      setB.add("c");
+      setB.add("d");
+
+      console.log("Union:", setA.union(setB).values());
+      console.log("Intersection:", setA.intersection(setB).values());
+      console.log("Difference:", setA.difference(setB).values());
+      console.log("Subset:", setB.subset(setA));
+
+      console.log("Dictionaries");
+
+      function Dictionary() {
+        var items = {};
+
+        this.set = function(key, value) {
+          items[key] = value;
+        };
+
+        this.delete = function(key) {
+          if (this.has(key)) {
+            delete items[key];
+            return true;
+          }
+          return false;
+        };
+
+        this.has = function(key) {
+          return items.hasOwnProperty(key);
+        };
+
+        this.get = function(key) {
+          return this.has(key) ? items[key] : undefined;
+        };
+
+        this.clear = function() {
+          items = {};
+        };
+
+        this.size = function() {
+          return Object.keys(items).length;
+        };
+
+        this.keys = function() {
+          return Object.keys(items);
+        };
+
+        this.values = function() {
+          var keys = this.keys();
+          var values = [];
+          for (var i = 0; i < keys.length; i++) {
+            values.push(items[keys[i]]);
+          }
+          return values;
+        };
+
+        this.getItems = function() {
+          return items;
+        };
+      }
+
+      var dict = new Dictionary();
+      dict.set("name", "William");
+      dict.set("role", "Student");
+      console.log("Has 'name':", dict.has("name"));
+      console.log("Get 'role':", dict.get("role"));
+      console.log("Keys:", dict.keys());
+      console.log("Values:", dict.values());
+      console.log("Size:", dict.size());
+
+      console.log("The hash table");
+
+      function ValuePair(key, value) {
+        this.key = key;
+        this.value = value;
+        this.toString = function() {
+          return "[" + this.key + " - " + this.value + "]";
+        };
+      }
+
+      function HashTable() {
+        var table = [];
+
+        function loseloseHashCode(key) {
+          var hash = 0;
+          for (var i = 0; i < key.length; i++) {
+            hash += key.charCodeAt(i);
+          }
+          return hash % 37;
+        }
+
+        this.put = function(key, value) {
+          var position = loseloseHashCode(key);
+          if (table[position] === undefined) {
+            table[position] = new LinkedList();
+          }
+          table[position].append(new ValuePair(key, value));
+        };
+
+        this.remove = function(key) {
+          var position = loseloseHashCode(key);
+          if (table[position] !== undefined) {
+            var current = table[position].getHead();
+            while (current) {
+              if (current.element.key === key) {
+                table[position].remove(current.element);
+                return true;
+              }
+              current = current.next;
+            }
+          }
+          return false;
+        };
+
+        this.get = function(key) {
+          var position = loseloseHashCode(key);
+          if (table[position] !== undefined) {
+            var current = table[position].getHead();
+            while (current) {
+              if (current.element.key === key) {
+                return current.element.value;
+              }
+              current = current.next;
+            }
+          }
+          return undefined;
+        };
+
+        this.print = function() {
+          for (var i = 0; i < table.length; i++) {
+            if (table[i] !== undefined) {
+              console.log(i + ": " + table[i].toString());
+            }
+          }
+        };
+      }
+
+      function Node(element) {
+        this.element = element;
+        this.next = null;
+      }
+
+      function LinkedList() {
+        this.length = 0;
+        this.head = null;
+
+        this.append = function(element) {
+          var node = new Node(element);
+          if (this.head === null) {
+            this.head = node;
+          } else {
+            var tmp = this.head;
+            while (tmp.next !== null) {
+              tmp = tmp.next;
+            }
+            tmp.next = node;
+          }
+          this.length++;
+        };
+
+        this.remove = function(element) {
+          var position = this.indexOf(element);
+          return this.removeAt(position);
+        };
+
+        this.indexOf = function(element) {
+          var tmp = this.head;
+          for (var i = 0; i < this.length; i++) {
+            if (tmp.element === element) {
+              return i;
+            }
+            tmp = tmp.next;
+          }
+          return -1;
+        };
+
+        this.removeAt = function(position) {
+          var element = null;
+          if (position === 0) {
+            element = this.head.element;
+            this.head = this.head.next;
+          } else {
+            var tmp = this.head;
+            for (var i = 0; i < position - 1; i++) {
+              tmp = tmp.next;
+            }
+            element = tmp.next.element;
+            tmp.next = tmp.next.next;
+          }
+          this.length--;
+          return element;
+        };
+
+        this.getHead = function() {
+          return this.head;
+        };
+
+        this.toString = function() {
+          var current = this.head;
+          var string = "";
+          while (current) {
+            string += current.element.toString() + (current.next ? " -> " : "");
+            current = current.next;
+          }
+          return string;
+        };
+      }
+
+      var ht = new HashTable();
+      ht.put("name", "William");
+      ht.put("role", "Student");
+      ht.put("course", "CMPS 260");
+      ht.print();
+      console.log("Get 'role':", ht.get("role"));
+      ht.remove("role");
+      ht.print();
+    </script>
+  </head>
+  <body> See console! </body>
+</html>
